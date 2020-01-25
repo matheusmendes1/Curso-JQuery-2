@@ -1,11 +1,12 @@
 $("#botao-placar").click(mostraPlacar);
+$('#botao-sync').click(sincronizaPlacar);
 
 function inserePlacar() {
-    var corpoTabela = $(".placar").find("tbody");
-    var usuario = "Douglas"
-    var numPalavras = $("#contador-palavras").text();
+    let corpoTabela = $(".placar").find("tbody");
+    let usuario = "Douglas"
+    let numPalavras = $("#contador-palavras").text();
 
-    var linha = novaLinha(usuario, numPalavras);
+    let linha = novaLinha(usuario, numPalavras);
     linha.find(".botao-remover").click(removeLinha);
 
     corpoTabela.append(linha);
@@ -14,7 +15,7 @@ function inserePlacar() {
 }
 
 function scrollPlacar() {
-    var posicaoPlacar = $(".placar").offset().top;
+    let posicaoPlacar = $(".placar").offset().top;
     $("body").animate(
     {
         scrollTop: posicaoPlacar + "px"
@@ -22,13 +23,13 @@ function scrollPlacar() {
 }
 
 function novaLinha(usuario, palavras) {
-    var linha = $("<tr>");
-    var colunaUsuario = $("<td>").text(usuario);
-    var colunaPalavras = $("<td>").text(palavras);
-    var colunaRemover = $("<td>");
+    let linha = $("<tr>");
+    let colunaUsuario = $("<td>").text(usuario);
+    let colunaPalavras = $("<td>").text(palavras);
+    let colunaRemover = $("<td>");
 
-    var link = $("<a>").addClass("botao-remover").attr("href", "#");
-    var icone = $("<i>").addClass("small").addClass("material-icons").text("delete");
+    let link = $("<a>").addClass("botao-remover").attr("href", "#");
+    let icone = $("<i>").addClass("small").addClass("material-icons").text("delete");
 
     link.append(icone);
 
@@ -43,7 +44,7 @@ function novaLinha(usuario, palavras) {
 
 function removeLinha() {
     event.preventDefault();
-    var linha = $(this).parent().parent();
+    let linha = $(this).parent().parent();
 
     linha.fadeOut(1000);
     setTimeout(function() {
@@ -53,4 +54,43 @@ function removeLinha() {
 
 function mostraPlacar() {
     $(".placar").stop().slideToggle(600);
+}
+
+function sincronizaPlacar(){
+    let placar = [];
+    let linhas = $("tbody>tr");
+
+    linhas.each(function(){
+        let usuario = $(this).find("td:nth-child(1)").text();
+        let palavras = $(this).find("td:nth-child(2)").text();
+
+        let score = {
+            usuario: usuario,
+            pontos: palavras            
+        };
+
+        placar.push(score);
+
+    });
+
+    let dados = {
+        placar: placar
+    };
+
+    $.post("http://localhost:3000/placar", dados, function(){
+        console.log("Placar sincronizado com sucesso");
+    });
+ }
+
+ function atualizaPlacar(){
+    $.get("http://localhost:3000/placar",function(data){
+        $(data).each(function(){
+            let linha = novaLinha(this.usuario, this.pontos);
+
+            //modificado aqui
+            linha.find(".botao-remover").click(removeLinha);
+
+            $("tbody").append(linha);
+        });
+    });
 }
