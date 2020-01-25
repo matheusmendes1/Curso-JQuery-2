@@ -3,7 +3,7 @@ $('#botao-sync').click(sincronizaPlacar);
 
 function inserePlacar() {
     let corpoTabela = $(".placar").find("tbody");
-    let usuario = "Douglas"
+    let usuario = $("#usuarios").val();
     let numPalavras = $("#contador-palavras").text();
 
     let linha = novaLinha(usuario, numPalavras);
@@ -71,23 +71,29 @@ function sincronizaPlacar(){
 
         placar.push(score);
 
+        let dados = {
+            placar: placar
+        };
+
+        $.post("http://localhost:3000/placar", dados , function() {
+            console.log("Placar sincronizado com sucesso");
+            $(".tooltip").tooltipster("open"); 
+        }).fail(function(){
+            $(".tooltip").tooltipster("open").tooltipster("content", "Falha ao sincronizar"); 
+        }).always(function(){ //novo
+            setTimeout(function() {
+            $(".tooltip").tooltipster("close"); 
+        }, 1200);
+});
+
     });
+}
 
-    let dados = {
-        placar: placar
-    };
-
-    $.post("http://localhost:3000/placar", dados, function(){
-        console.log("Placar sincronizado com sucesso");
-    });
- }
-
- function atualizaPlacar(){
+function atualizaPlacar(){
     $.get("http://localhost:3000/placar",function(data){
         $(data).each(function(){
             let linha = novaLinha(this.usuario, this.pontos);
 
-            //modificado aqui
             linha.find(".botao-remover").click(removeLinha);
 
             $("tbody").append(linha);
